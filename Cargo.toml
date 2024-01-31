@@ -8,4 +8,4 @@ edition = "2021"
 [dependencies]
 
 [workspase]
-members = ["tutor-nodb"]
+members = ["tutor-nodb", "tutor-db"]

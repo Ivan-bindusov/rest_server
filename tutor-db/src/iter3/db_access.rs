@@ -18,8 +18,8 @@ pub async fn get_courses_for_tutor_db(pool: &PgPool, tutor_id: i32) -> Vec<Cours
             posted_time: Some(chrono::NaiveDateTime::from(
                 course_row.posted_time.unwrap(),
             ))
-            .collect()
         })
+        .collect()
 }
 
 pub async fn get_course_details_db(pool: &PgPool, tutor_id: i32, course_id: i32) -> Course {
@@ -41,11 +41,13 @@ pub async fn get_course_details_db(pool: &PgPool, tutor_id: i32, course_id: i32)
     }
 }
 
-pub async fn post_new_course_db(pool: PgPool, new_course: Course) -> Corse {
-    let course_row = sqlx::query!("insert into ezy_course_c4 (
-        tutor_id, course_id, course_name) values ($1, $2, $3) returning
-        tutor_id, course_id, course_name, posted_time", new_course.course_id,
-        new_course.tutor_id, new_course.course_name)
+pub async fn post_new_course_db(pool: &PgPool, new_course: Course) -> Course {
+    let course_row = sqlx::query!("insert into ezy_course_c4 (course_id, tutor_id, course_name)  
+        values ($1, $2, $3) returning 
+        tutor_id, 
+        course_id, 
+        course_name,  
+        posted_time", new_course.course_id, new_course.tutor_id, new_course.course_name)
     .fetch_one(pool)
     .await.unwrap();
 

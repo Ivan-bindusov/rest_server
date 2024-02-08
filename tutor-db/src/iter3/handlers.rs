@@ -1,5 +1,8 @@
+use super::db_access::*;
 use super::models::Course;
 use super::state::AppState;
+use std::convert::TryFrom;
+
 use actix_web::{web, HttpResponse};
 
 pub async fn health_check_handler(app_state: web::Data<AppState>) -> HttpResponse {
@@ -11,24 +14,33 @@ pub async fn health_check_handler(app_state: web::Data<AppState>) -> HttpRespons
 }
 
 pub async fn get_courses_for_tutor(
-    _app_state: web::Data<AppState>,
-    _params: web::Path<(i32,)>,
+    app_state: web::Data<AppState>,
+    params: web::Path<(i32,)>,
 ) -> HttpResponse {
-    HttpResponse::Ok().json("success")
+    let tuple = params.0;
+    let tutor_id: i32 = i32::try_from(tuple).unwrap();
+    let courses = get_courses_for_tutor_db(&app_state.db, tutor_id).await;
+    HttpResponse::Ok().json(courses)
 }
 
 pub async fn get_course_details(
-    _app_state: web::Data<AppState>,
-    _params: web::Path<(i32, i32)>,
+    app_state: web::Data<AppState>,
+    params: web::Path<(i32, i32)>,
 ) -> HttpResponse {
-    HttpResponse::Ok().json("success")
+    let tuple = params;
+    let tutor_id: i32 = i32::try_from(tuple.0).unwrap();
+    let course_id: i32 = i32::try_from(tuple.1).unwrap();
+    let course = get_course_details_db(
+        &app_state.db, tutor_id, course_id).await;
+    HttpResponse::Ok().json(course)
 }
 
 pub async fn post_new_course(
-    _new_course: web::Json<Course>,
-    _app_state: web::Data<AppState>,
+    new_course: web::Json<Course>,
+    app_state: web::Data<AppState>,
 ) -> HttpResponse {
-    HttpResponse::Ok().json("success")
+    let course = post_new_course_db(&app_state.db, new_course.into()).await;
+    HttpResponse::Ok().json(course)
 }
 
 #[cfg(test)]
@@ -82,7 +94,7 @@ mod tests {
             db: pool,
         });
         let new_course_msg = Course {
-            course_id: 1,
+            course_id: 3,
             tutor_id: 1,
             course_name: "This is the next course".into(),
             posted_time: Some(NaiveDate::from_ymd_opt(2024, 2, 3).unwrap().and_hms_opt(14, 56, 50).unwrap()),

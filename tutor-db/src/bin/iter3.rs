@@ -5,27 +5,6 @@ use std::env;
 use std::io;
 use std::sync::Mutex;
 
-use std::fmt;
-use std::fs::File;
-use std::io::Write;
-
-#[derive(Debug)]
-pub enum MyError {
-    ParseError,
-    IOError,
-}
-
-impl std::error::Error for MyError {}
-
-impl fmt::Display for MyError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            MyError::ParseError => write!(f, "Parse Error"),
-            MyError::IOError => write!(f, "IO Error"),
-        }
-    }
-}
-
 #[path = "../iter3/db_access.rs"]
 mod db_access;
 #[path = "../iter3/errors.rs"]
@@ -63,14 +42,4 @@ async fn main() -> io::Result<()> {
     };
 
     HttpServer::new(app).bind("127.0.0.1:3000")?.run().await
-}
-
-fn square(val: &str) -> Result<i32, MyError> {
-    let num = val.parse::<i32>().map_err(|_| MyError::ParseError)?;
-    let mut f = file::open("fictionalfile.txt").map_err(
-        |_| MyError::IOError)?;
-    let string_to_write = format!("Square of {:?} is {:?}", num, i32::pow(num, 2));
-    f.write_all(string_to_write.as_bytes())
-        .map_err(|_| MyError::IOError)?;
-    Ok(i32::pow(num, 2))
 }
